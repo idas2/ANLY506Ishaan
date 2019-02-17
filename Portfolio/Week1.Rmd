@@ -1,0 +1,75 @@
+---
+title: "Week1"
+author: "Ishaan Das"
+date: "October 30, 2018"
+output: html_document
+---
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lattice)
+```
+
+###Let us start by reading in the IRIS Dataset
+
+```{r}
+str(iris)
+```
+
+###Next we can check the first 6 and last 6 rows using the head and tail function to check for consistency of observations. We can also check for missing values.
+
+```{r}
+head(iris)
+#Here we see the first 5 rows of the dataset and all columns have values.
+#Next we can execute the tail function.
+tail(iris)
+#The output shows us the last 5 rows of the dataset and all columns have values.
+#Next we execute a function that will provide us with the number of null values.
+colSums(is.na(iris))
+#This function shows us all the null values and we can see that there are 0 null values for all 5 variables. 
+```
+
+###Next we can conduct a summary of the data by executing various functions.
+
+```{r}
+#We can start by checking for the ranges of each variable to check if any of the dimensions are 0 because length and width can't be 0. And if our dataset does contain 0 then it would indicate a potential dataset error.
+range(iris$Sepal.Length)
+range(iris$Sepal.Width)
+range(iris$Petal.Length)
+range(iris$Petal.Width)
+#None of our observations are 0 which indicates a good dataset.
+
+#Next we can check how many of our observations lie in each flower species
+table(iris$Species)
+#the output indicates an equal distribution across all three flower species
+```
+
+###Given equal number of observations we can create some plots.
+
+```{r}
+#First let us create some box plots to see the range of the observations and if there are any outliers.
+boxplot(iris[,c(1:4)], ylab = "Measurements in centimeters")
+#This boxplot shows us the range of each variable.
+
+#We are interested in knowing how sepal length differs for each species.
+boxplot(iris$Sepal.Length ~ iris$Species, ulab = "Measurements in centimeters")
+#Setosas have the smallest sepal lengths followed by versicolor and then by virginica.
+
+#We are also interested in knowing how sepal width differs for each species.
+boxplot(iris$Sepal.Width ~ iris$Species, ulab = "Measurements in centimeters")
+#For sepal width range is different for each species.
+
+#We can check sepal length histograms for each species.
+histogram( ~ Sepal.Length | Species, data = iris)
+
+#We can check sepal width histograms for each species.
+histogram( ~ Sepal.Width | Species, data = iris)
+
+#We can check petal length histograms for each species.
+histogram( ~ Petal.Length | Species, data = iris)
+
+#We can check sepal width histograms for each species.
+histogram( ~ Petal.Width | Species, data = iris)
+```
+
+##There seems to be some similarities in the petal histograms indicating a possible relationship between petal.length and petal.width.

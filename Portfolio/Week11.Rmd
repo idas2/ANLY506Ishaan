@@ -1,0 +1,31 @@
+---
+title: "Week12"
+author: "Ishaan Das"
+date: "January 22, 2019"
+output: html_document
+---
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lattice)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+library(yarrr)
+library(stats)
+library (NbClust)
+library (cluster)
+library (clustertend)
+library (factoextra)
+```
+
+##Kmeans Clustering
+
+```{r}
+```
+
+##Clustering
+
+```{r}
+
+```

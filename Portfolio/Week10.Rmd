@@ -1,0 +1,187 @@
+---
+title: "Week10"
+author: "Ishaan Das"
+date: "January 9, 2019"
+output: html_document
+---
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lattice)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+library(yarrr)
+```
+
+##Let us start by reading in the bikeVendor Dataset
+
+```{r}
+bikeVendor <- read.csv("C:/Users/sesa434199/Documents/GitHub/ANLY506Ishaan/Data/bikeVendors.csv", header = TRUE)
+#Let us check the structure of our dataset before beginning to get a picture of our variables. This will also help us know if we need to change the variable type of any of the variables.
+str(bikeVendor)
+#Everything looks fine. Factors are factors and intergers are integers.
+```
+
+##Using the functions that we see in Ch11 and Ch12 in YaRrr.
+
+```{r}
+#Let us try to create a scatter plot with all the options available. 
+plot(x = 1:10,                         # x-coordinates
+     y = 1:10,                         # y-coordinates
+     type = "p",                       # Just draw points (no lines)
+     main = "Not My First Plot",
+     xlab = "X-axis label",
+     ylab = "Y-axis label",
+     xlim = c(0, 11),                  # Min and max values for x-axis
+     ylim = c(0, 11),                  # Min and max values for y-axis
+     col = "blue",                     # Color of the points
+     pch = 6,                         # Type of symbol (6 means inverted hollow triangle)
+     cex = 1)                         # Size of the symbols
+
+#Next we can check the histogram of numerical variables
+hist(x = iris$Sepal.Length,
+     main = "Flower Sepal Length",
+     xlab = "Sepal Length",
+     xlim = c(4,8))
+
+#We can use additional color and border options to color our chart.
+hist(x = iris$Sepal.Length,
+     main = "Flower Sepal Length",
+     xlab = "Sepal Length",
+     xlim = c(4,8),
+     breaks = 16, #16 breaks
+     col = "papayawhip", # Filling Color
+     border = "hotpink") # Border Color)
+
+#Let us create bar plots to show our bikeVendor data
+barplot(height = bikeVendor$price,
+        names.arg = bikeVendor$Albuquerque.Cycles,
+        xlab = "Contribution Margin",
+        ylab = "Price",
+        main = "Price vs contribution for Albuquerque Cycles",
+        col = "mistyrose")
+
+```
+
+##We can use the Yarrr library to create more plots
+```{r}
+#Plot of chick weights
+pirateplot(formula = weight ~ Time, # dv is weight, iv is Diet
+                   data = ChickWeight,
+                   main = "Pirateplot of chicken weights",
+                   xlab = "Diet",
+                   ylab = "Weight")
+
+#Using the same function to create a plot from teh pirates dataset
+yarrr::pirateplot(formula = height ~ sex + headband,    # DV = height, IV1 = sex, IV2 = headband
+                  data = pirates,           
+                  theme = 3,
+                  main = "Pirate Heights",
+                  pal = "gray")
+
+#This plot contains all the elements explicitly
+pirateplot(formula = weight ~ Time,
+           data = ChickWeight,
+           theme = 0,
+           main = "Fully customized pirateplot",
+           pal = "southpark", # southpark color palette
+           bean.f.o = .6, # Bean fill
+           point.o = .3, # Points
+           inf.f.o = .7, # Inference fill
+           inf.b.o = .8, # Inference border
+           avg.line.o = 1, # Average line
+           bar.f.o = .5, # Bar
+           inf.f.col = "white", # Inf fill col
+           inf.b.col = "black", # Inf border col
+           avg.line.col = "black", # avg line col
+           bar.f.col = gray(.8), # bar filling color
+           point.pch = 21,
+           point.bg = "white",
+           point.col = "black",
+           point.cex = .7)
+
+#Similarly selective adjustments can also be made
+pirateplot(formula = weight ~ Time,
+           data = ChickWeight,
+           main = "Adjusting an existing theme",
+           theme = 2,  # Start with theme 2
+           inf.f.o = 0, # Turn off inf fill
+           inf.b.o = 0, # Turn off inf border
+           point.o = .2,   # Turn up points
+           bar.f.o = .5, # Turn up bars
+           bean.f.o = .4, # Light bean filling
+           bean.b.o = .2, # Light bean border
+           avg.line.o = 0, # Turn off average line
+           point.col = "black") # Black points
+
+#We can also add quantile lines and background color
+pirateplot(formula = weight ~ Diet, 
+           data = ChickWeight,
+           main = "Adding quantile lines and background colors",
+           theme = 2,
+           cap.beans = TRUE,
+           back.col = transparent("blue", .95), # Add light blue background
+           gl.col = "gray", # Gray gridlines
+           gl.lwd = c(.75, 0),
+           inf.f.o = .6, # Turn up inf filling
+           inf.disp = "bean", # Wrap inference around bean
+           bean.b.o = .4, # Turn down bean borders
+           quant = c(.1, .9), # 10th and 90th quantiles
+           quant.col = "black") # Black quantile lines
+```
+
+##Curve function
+
+```{r}
+#Let us start with a scatterplot
+plot(x = ChickWeight$Time,
+     y = ChickWeight$weight, 
+     col = gray(.3, .5), 
+     pch = 16,
+     main = "Combining text with numeric scalers using paste()")
+
+# Add reference line
+abline(h = mean(ChickWeight$weight), 
+       lty = 2)
+
+# Add text
+text(x = 3, 
+     y = mean(ChickWeight$weight), 
+     labels = paste("Mean weight =", 
+                    round(mean(ChickWeight$weight), 2)),
+     pos = 3)
+
+#We can also use baloon plots instead of scatterplot!
+
+# Create some random correlated data
+x <- rnorm(50, mean = 50, sd = 10)
+y <- x + rnorm(50, mean = 20, sd = 8)
+
+# Set up the plotting space
+plot(1, 
+     bty = "n",
+     xlim = c(0, 100),
+     ylim = c(0, 100),
+     type = "n", xlab = "", ylab = "", 
+     main = "Turning a scatterplot into a balloon plot!")
+
+# Add gridlines
+grid()
+
+# Add Strings with segments()
+segments(x0 = x + rnorm(length(x), mean = 0, sd = .5), 
+         y0 = y - 10, 
+         x1 = x, 
+         y1 = y, 
+         col = gray(.1, .95),
+         lwd = .5)
+
+# Add balloons
+points(x, y, 
+       cex = 2, # Size of the balloons
+       pch = 21, 
+       col = "white", # white border
+       bg = yarrr::piratepal("basel"))  # Filling color
+
+```

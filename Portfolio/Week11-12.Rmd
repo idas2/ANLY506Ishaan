@@ -1,0 +1,80 @@
+---
+title: "Week12"
+author: "Ishaan Das"
+date: "January 22, 2019"
+output: html_document
+---
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lattice)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+library(yarrr)
+library(stats)
+library (NbClust)
+library (cluster)
+library (clustertend)
+library (factoextra)
+```
+
+##Kmeans
+
+```{r}
+fa <- c(5,2,1,4)
+fb <- c(5,5,4,2)
+fm <- matrix(c(fa,fb), byrow=T, nrow=2)
+col_names_vectors <- c("U1", "U2", "U3", "U4")
+#Distance from user1 (U1) to the new user
+d1 <- abs(fm[1,1]-fm[1,4]) + abs(fm[2,1]-fm[2,4])
+d1
+#Distance from user2 (U2) to the new user
+d2 <- abs(fm[1,2]-fm[1,4]) + abs(fm[2,2]-fm[2,4])
+d2
+#Distance from user3 (U3) to the new user
+d3 <- abs(fm[1,3]-fm[1,4]) + abs(fm[2,3]-fm[2,4])
+d3
+
+
+distance_vector <- c(d1,d2,d3)
+#Checking which distance is the smallest one
+min(distance_vector)
+#For the new user, system should recommend user1 (U1)
+
+#Let us create scatterplots for all variables against each other in the IRIS dataset
+plot (iris)
+```
+
+##Clustering
+
+```{r}
+#Before we begin clustering we want to check if data is clusterable. We can use the hopkins test
+iris2 <- iris[, (-5)]
+hopkins(iris2, n=nrow(iris2)-1)
+#This is below the threshold of 0.5 and hence the data is clusterable
+
+#Let us use a visual method to access clustering tendency
+fviz_dist(dist(iris2), show_labels = FALSE)+
+  labs(title = "Iris")
+#We can see clusters forming
+
+#Let us now estimate the number of clusters
+fviz_nbclust(iris2, pam, method = "silhouette")+ theme_classic()
+
+#We can also plot the PCAs of the dataset to visually inspect
+fviz_pca_ind(prcomp(iris2), title = "PCA - Iris Data", palette = "jco", geom = "point", ggtheme = theme_classic(), legend = "bottom")
+#The dataset splits into two distinct categories.
+
+#we can also use NbClust to determine number of lcusters
+NbClust ((iris2), distance="euclidean", method="kmeans")
+#2 clusters were proposed by 10 indices
+
+#we can try to create the 2 clusters
+pam.res3 <- pam(iris2, 2,  metric = "euclidean", stand = FALSE)
+fviz_cluster(pam.res3, data = iris2, palette = c("#FC4E07", "#00AFBB", "#E7B800"), ellipse.type = "euclid",star.plot = TRUE, repel = TRUE, ggtheme = theme_minimal() )
+
+#We can also try cluster validation
+fviz_silhouette(pam.res3, palette = "jco", ggtheme = theme_classic())
+#We can compare this with real world hypothesis and check for validations in the clustering.
+```

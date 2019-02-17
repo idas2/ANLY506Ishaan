@@ -1,0 +1,166 @@
+---
+title: "Week10"
+author: "Ishaan Das"
+date: "January 9, 2019"
+output: html_document
+---
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lattice)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+library(yarrr)
+```
+
+##Let us start by reading in the bikeVendor Dataset
+
+```{r}
+bikeVendor <- read.csv("C:/Users/sesa434199/Documents/GitHub/ANLY506Ishaan/Data/bikeVendors.csv", header = TRUE)
+#Let us check the structure of our dataset before beginning to get a picture of our variables. This will also help us know if we need to change the variable type of any of the variables.
+str(bikeVendor)
+#Everything looks fine. Factors are factors and intergers are integers.
+```
+
+##Using the functions that we see in Ch11 and Ch12 in YaRrr.
+
+```{r}
+#Let us try to create a scatter plot with all the options available. 
+plot(x = 1:10,                         # x-coordinates
+     y = 1:10,                         # y-coordinates
+     type = "p",                       # Just draw points (no lines)
+     main = "Not My First Plot",
+     xlab = "X-axis label",
+     ylab = "Y-axis label",
+     xlim = c(0, 11),                  # Min and max values for x-axis
+     ylim = c(0, 11),                  # Min and max values for y-axis
+     col = "blue",                     # Color of the points
+     pch = 6,                         # Type of symbol (6 means inverted hollow triangle)
+     cex = 1)                         # Size of the symbols
+
+#Next we can check the histogram of numerical variables
+hist(x = iris$Sepal.Length,
+     main = "Flower Sepal Length",
+     xlab = "Sepal Length",
+     xlim = c(4,8))
+
+#We can use additional color and border options to color our chart.
+hist(x = iris$Sepal.Length,
+     main = "Flower Sepal Length",
+     xlab = "Sepal Length",
+     xlim = c(4,8),
+     breaks = 16, #16 breaks
+     col = "papayawhip", # Filling Color
+     border = "hotpink") # Border Color)
+
+#Let us create bar plots to show our bikeVendor data
+barplot(height = bikeVendor$price,
+        names.arg = bikeVendor$Albuquerque.Cycles,
+        xlab = "Contribution Margin",
+        ylab = "Price",
+        main = "Price vs contribution for Albuquerque Cycles",
+        col = "mistyrose")
+
+```
+##To create scatterplots we need to reshape the data.
+
+```{r}
+#We need to reshape the data. This will help us extract the data that we need in a better way.
+colnames(bikeVendor)
+bikeVendor3 <- melt(bikeVendor, id = (1:5))
+
+#Rename the columns to match what we 
+colnames(bikeVendor3)
+colnames(bikeVendor3)[6] <- "VendorName"
+colnames(bikeVendor3)[7] <- "RevenueContribution"
+
+#Next we can create a scatter plot to see how our observations land and what is the price range and profit
+ggplot(bikeVendor, aes(x = price, y = Albuquerque.Cycles)) + geom_point()
+#We can see that the profit margins are consistent irrespective of the price of the bicycles
+
+#Let us see the margin contributions for each bike type
+ggplot(bikeVendor3, aes(x = RevenueContribution, y = price)) + geom_point(aes(color = VendorName))
+#That is not very interpretable
+
+#Create a subset of the main dataset
+AlbCycles <- subset(bikeVendor3, VendorName == "Albuquerque.Cycles")
+ggplot(AlbCycles, aes(x = RevenueContribution, y = price)) + geom_point(aes(color = frame))
+#It can be observed that Aluminum and Carbon cycles both have same margins.
+
+#Let's observe if specific bike types have any influence over Revenue Contribution 
+ggplot(AlbCycles, aes(x = RevenueContribution, y = price)) + geom_point(aes(color = category1))
+#Seems like the margins are same even for different categories of bikes
+
+#So all analysis based on specific bike vendors breaks down and doesn't yield any results.
+#We can create box plots for price against each category of bike and see the charts if they yield any results.
+ggplot(bikeVendor3, aes(x = VendorName, y = RevenueContribution)) + geom_boxplot() + coord_flip()
+#We see the box plots for the different vendors. The contributions look very similar.
+```
+
+##We can use the Yarrr library to create more plots
+```{r}
+#Plot of chick weights
+pirateplot(formula = weight ~ Time, # dv is weight, iv is Diet
+                   data = ChickWeight,
+                   main = "Pirateplot of chicken weights",
+                   xlab = "Diet",
+                   ylab = "Weight")
+
+#Using the same function to create a plot from teh pirates dataset
+yarrr::pirateplot(formula = height ~ sex + headband,    # DV = height, IV1 = sex, IV2 = headband
+                  data = pirates,           
+                  theme = 3,
+                  main = "Pirate Heights",
+                  pal = "gray")
+
+#This plot contains all the elements explicitly
+pirateplot(formula = weight ~ Time,
+           data = ChickWeight,
+           theme = 0,
+           main = "Fully customized pirateplot",
+           pal = "southpark", # southpark color palette
+           bean.f.o = .6, # Bean fill
+           point.o = .3, # Points
+           inf.f.o = .7, # Inference fill
+           inf.b.o = .8, # Inference border
+           avg.line.o = 1, # Average line
+           bar.f.o = .5, # Bar
+           inf.f.col = "white", # Inf fill col
+           inf.b.col = "black", # Inf border col
+           avg.line.col = "black", # avg line col
+           bar.f.col = gray(.8), # bar filling color
+           point.pch = 21,
+           point.bg = "white",
+           point.col = "black",
+           point.cex = .7)
+
+#Similarly selective adjustments can also be made
+pirateplot(formula = weight ~ Time,
+           data = ChickWeight,
+           main = "Adjusting an existing theme",
+           theme = 2,  # Start with theme 2
+           inf.f.o = 0, # Turn off inf fill
+           inf.b.o = 0, # Turn off inf border
+           point.o = .2,   # Turn up points
+           bar.f.o = .5, # Turn up bars
+           bean.f.o = .4, # Light bean filling
+           bean.b.o = .2, # Light bean border
+           avg.line.o = 0, # Turn off average line
+           point.col = "black") # Black points
+
+#We can also add quantile lines and background color
+pirateplot(formula = weight ~ Diet, 
+           data = ChickWeight,
+           main = "Adding quantile lines and background colors",
+           theme = 2,
+           cap.beans = TRUE,
+           back.col = transparent("blue", .95), # Add light blue background
+           gl.col = "gray", # Gray gridlines
+           gl.lwd = c(.75, 0),
+           inf.f.o = .6, # Turn up inf filling
+           inf.disp = "bean", # Wrap inference around bean
+           bean.b.o = .4, # Turn down bean borders
+           quant = c(.1, .9), # 10th and 90th quantiles
+           quant.col = "black") # Black quantile lines
+```

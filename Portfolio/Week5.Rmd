@@ -1,0 +1,23 @@
+---
+title: "Week5"
+author: "Ishaan Das"
+date: "November 27, 2018"
+output: html_document
+---
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lattice)
+library(dplyr)
+```
+
+###Let us start by reading in the bike Vendor dataset
+
+```{r}
+bikeVendor <- read.csv("C:/Users/sesa434199/Documents/GitHub/ANLY506Ishaan/Data/bikeVendors.csv", header = T)
+```
+
+###Next we can write the outut to a dataset using the write.csv function
+
+```{r}
+```

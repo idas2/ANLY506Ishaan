@@ -1,0 +1,74 @@
+---
+title: "Week6"
+author: "Ishaan Das"
+date: "November 6, 2018"
+output: html_document
+---
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lattice)
+library(dplyr)
+```
+
+##Let us start by reading in the bikeVendor Dataset
+
+```{r}
+bikeVendor <- read.csv("C:/Users/sesa434199/Documents/GitHub/ANLY506Ishaan/Data/bikeVendors.csv", header = TRUE)
+#Let us check the structure of our dataset before beginning to get a picture of our variables. This will also help us know if we need to change the variable type of any of the variables.
+str(bikeVendor)
+#Everything looks fine. Factors are factors and intergers are integers.
+```
+
+##Using the functions that we saw in Ch8 YaRrr.
+
+```{r}
+#Let us extract three variables from the bikeVendor dataset
+a <- bikeVendor$Albuquerque.Cycles
+b <- bikeVendor$Ann.Arbor.Speed
+c <- bikeVendor$Austin.Cruisers
+d <- bikeVendor$model
+e <- bikeVendor$price
+
+#We can create a matrix using the three variables as columns.
+cbind(a,b,c)
+
+#We can also create a matrix where a,b,c are rows.
+rbind(a,b,c)
+
+#Next we can create a matrix with 25 integers with 5 rows and 5 columns.
+matrix(data = 1:25,
+       nrow = 5)
+
+#Matrix can either contain numbers or characters but not both.
+
+#We can also fill by rows
+matrix(data = 1:25,
+       nrow = 5,
+       byrow = TRUE)
+
+#We can also create a data frame with numerical and character values
+Samp <- data.frame(d, e, c)
+Samp
+
+#We can also get the names of our columns in a dataframe
+names(Samp)
+#These are the names we gave each vector initially.
+
+#We can assign names to each of these vectors
+names(Samp)[1] <- "Model"
+Samp
+
+#Let us check the number of bikes for each category1
+table(bikeVendor$category1)
+```
+##Slicing the data frame
+
+```{r}
+#We can extract certain rows and columns from a data frame
+bikeVendor[2:5, c(2,5)]
+
+#We can extract specific columns using the subset function
+MountainBikes <- subset(bikeVendor, category1 == "Mountain")
+MountainBikes
+```

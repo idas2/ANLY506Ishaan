@@ -1,0 +1,75 @@
+---
+title: "Week7"
+author: "Ishaan Das"
+date: "December 11, 2018"
+output: html_document
+---
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lattice)
+library(dplyr)
+```
+
+##Let us start by reading in the bikeVendor Dataset
+
+```{r}
+bikeVendor <- read.csv("C:/Users/sesa434199/Documents/GitHub/ANLY506Ishaan/Data/bikeVendors.csv", header = TRUE)
+#Let us check the structure of our dataset before beginning to get a picture of our variables. This will also help us know if we need to change the variable type of any of the variables.
+str(bikeVendor)
+#Everything looks fine. Factors are factors and intergers are integers.
+```
+
+##Using the functions that we see in Ch5 in R for Data Science
+
+```{r}
+#We can reduce the columns by creating a subset of the bikeVendor dataset
+bikeVendor2 <- bikeVendor[c(1:15), c(1:7)]
+
+#We can filter using the filter() function
+filter(bikeVendor2, category1 == "Mountain")
+
+#We can also filter based on a certian value
+filter(bikeVendor2, price >= 10000)
+
+#We can also use the filter function with logical AND operator
+filter(bikeVendor2, price >= 4000 & price <= 5000)
+
+#We can also use the filter function with logical OR operator
+filter(bikeVendor2, price <= 3000 | frame == "Road")
+
+#We can use the tibble function to extract a small piece of the dataset
+
+#We can also arrange the table based on a variable
+arrange(bikeVendor2, desc(price))
+
+#We can also use the select function to select a few variables from a given dataset. The following command selects only 2 variables.
+select(bikeVendor2, price, category1)
+
+#We can also rename the variables using the rename() function
+
+#We can use the select function to select specific rows based on conditions
+select(bikeVendor2, contains("price"))
+
+#We can use the mutate function to create new variables
+mutate(bikeVendor2, Deviation = price - mean(price))
+
+#Log transformations can be used to prepare the variables for regression
+log(bikeVendor2$price)
+
+#We can use the leading and lagging to add or subtract from previous values
+x<-bikeVendor2$price
+lead(x)
+lag(x)
+
+#We can also use the cumsum() and cummean() functions which gives a rolling sum and rolling mean
+cumsum(x)
+cummean(x)
+
+#We can use ranking funcitons to rank the observations. We can reverse the ranking order by using the desc() function
+min_rank(bikeVendor2$price)
+min_rank(desc(x))
+
+#We can use the summarize function to summarize the dataframe.
+summarise(bikeVendor2, aluminumprice = mean(price))
+```

@@ -1,0 +1,44 @@
+---
+title: "Week3"
+author: "Ishaan Das"
+date: "November 13, 2019"
+output: html_document
+---
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lattice)
+library(dplyr)
+```
+
+##Let us look at some functions from Ch 9 from YaRrr
+
+```{r}
+#This function provides a list of all objects in the global environment.
+ls()
+#Those are a lot of objects.
+```
+
+```{r}
+# Create some objects that we'll save later
+study1.df <- data.frame(id = 1:5, 
+                        sex = c("m", "m", "f", "f", "m"), 
+                        score = c(51, 20, 67, 52, 42))
+
+score.by.sex <- aggregate(score ~ sex, 
+                          FUN = mean, 
+                          data = study1.df)
+
+study1.htest <- t.test(score ~ sex, 
+                       data = study1.df)
+
+#Now that we have everything we can export all files to a single.RData file.
+save(study1.df, score.by.sex, study1.htest, file = "C:/Users/sesa434199/Documents/GitHub/ANLY506Ishaan/Portfolio/Week3Sample.RData")
+#This creates our RData file
+```
+
+```{r}
+#We can save an image of the entire workspace as an .RData file
+save.image(file = "C:/Users/sesa434199/Documents/GitHub/ANLY506Ishaan/Portfolio/Week3Sample2.RData")
+#That saves the entire workspace image as an RData file.
+```

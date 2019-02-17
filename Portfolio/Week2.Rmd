@@ -1,0 +1,88 @@
+---
+title: "Week2"
+author: "Ishaan Das"
+date: "November 6, 2018"
+output: html_document
+---
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lattice)
+library(dplyr)
+```
+
+###Let us start by reading in the bikeVendor Dataset
+
+```{r}
+bikeVendor <- read.csv("C:/Users/sesa434199/Documents/GitHub/ANLY506Ishaan/Data/bikeVendors.csv", header = TRUE)
+#Let us check the structure of our dataset before beginning to get a picture of our variables. This will also help us know if we need to change the variable type of any of the variables.
+str(bikeVendor)
+#Everything looks fine. Factors are factors and intergers are integers.
+```
+
+###Next we can check the first 6 and last 6 rows using the head and tail function to check for consistency of observations. We can also check for missing values.
+
+```{r}
+#Let us check the number of rows and columns
+nrow(bikeVendor)
+ncol(bikeVendor)
+
+#We can also check the top 6 rows in the dataset and their values.
+head(bikeVendor)
+#Here we see the first 6 rows of the dataset and all columns have values.
+
+#Next we can execute the tail function.
+tail(bikeVendor)
+#The output shows us the last 6 rows of the dataset and all columns have values.
+
+#Next we execute a function that will provide us with the number of null values.
+colSums(is.na(bikeVendor))
+#This function shows us all the null values and we can see that there are no NA's in the dataset.
+
+
+```
+
+###Next we can explore the data using various functions that we learn in Ch5 of the book Exploratory Data .
+
+```{r}
+#We can start by checking for the ranges of each variable to check if any of the dimensions are 0 because length and width can't be 0. And if our dataset does contain 0 then it would indicate a potential dataset error.
+range(bikeVendor$price)
+#The prices range form $415 to $12790.
+
+#Next we can check how many of our observations lie in each category1 of bikes
+table(bikeVendor$category1)
+#There are more mountain bikes than there are road bikes.
+
+#Let us also check how the bike models are distributed over category2
+table(bikeVendor$category2)
+#We observe that the cross coutry race type has the most bikes.
+
+#Let us also check the number of bikes for each frame type
+table(bikeVendor$frame)
+#40 bikes are Aluminium and 57 bikes are Carbon
+
+#We can get some summary statistics for price.
+summary(bikeVendor$price)
+#We can observe that the maximum price is quite high.
+
+#We can get information for each decile to see how the distribution of price looks like.
+quantile(bikeVendor$price, seq(0,1,0.1))
+#We can observe that the most expensive bike is quite pricier than the median.
+
+#We can also check average price by frame type
+group_by(bikeVendor, frame) %>%
+  summarize(bikeVendor = mean(price))
+#We see that in general Carbon bikes are more expensive
+
+#We can also check average price by category1
+group_by(bikeVendor, category1) %>%
+  summarize(bikeVendor = mean(price))
+#We observe that Mountain bikes are slightly more expensive than road bikes
+
+#We can also check average price by category2
+group_by(bikeVendor, category2) %>%
+  summarize(bikeVendor = mean(price)) %>%
+  as.data.frame %>%
+  arrange(desc(bikeVendor))
+#We observe that Cross Country Race bikes and Over Mountain bikes are the most expensive bikes. While Sport bikes are the cheapest.
+```

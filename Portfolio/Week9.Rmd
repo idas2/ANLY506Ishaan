@@ -1,0 +1,83 @@
+---
+title: "Week9"
+author: "Ishaan Das"
+date: "January 3, 2018"
+output: html_document
+---
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lattice)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+```
+
+##Let us start by reading in the bikeVendor Dataset
+
+```{r}
+bikeVendor <- read.csv("C:/Users/sesa434199/Documents/GitHub/ANLY506Ishaan/Data/bikeVendors.csv", header = TRUE)
+#Let us check the structure of our dataset before beginning to get a picture of our variables. This will also help us know if we need to change the variable type of any of the variables.
+str(bikeVendor)
+#Everything looks fine. Factors are factors and intergers are integers.
+```
+
+##Using the functions that we see in Ch7 in R for Data Science. We will start with histograms.
+
+```{r}
+#Let us create some bar plots and see how our categorical variables look
+ggplot(data = bikeVendor) + geom_bar(mapping = aes(x = frame))
+
+#Let create these bar plots for the other categorical variables in the dataset
+ggplot(data = bikeVendor) + geom_bar(mapping = aes(x = category1))
+ggplot(data = bikeVendor) + geom_bar(mapping = aes(x = category2))
+
+#We can create a price histogram to see the distribution
+ggplot(data = bikeVendor) +
+  geom_histogram(mapping = aes(x = price), binwidth = 1000)
+
+#We can also create histograms for each of our bike vendors
+ggplot(data = bikeVendor) +
+  geom_histogram(mapping = aes(x = Albuquerque.Cycles), binwidth = 0.005)
+
+#We can also reduce the bin width
+ggplot(data = bikeVendor) +
+  geom_histogram(mapping = aes(x = Albuquerque.Cycles), binwidth = 0.0025)
+
+#Next we can check the number of bikes for each category in different price ranges
+ggplot(data = bikeVendor, aes(x = price, colour = category1)) + geom_freqpoly()
+
+```
+##To create scatterplots we need to reshape the data
+```{r}
+#We need to reshape the data. This will help us extract the data that we need in a better way.
+colnames(bikeVendor)
+bikeVendor3 <- melt(bikeVendor, id = (1:5))
+
+#Rename the columns to match what we 
+colnames(bikeVendor3)
+colnames(bikeVendor3)[6] <- "VendorName"
+colnames(bikeVendor3)[7] <- "RevenueContribution"
+
+#Next we can create a scatter plot to see how our observations land and what is the price range and profit
+ggplot(bikeVendor, aes(x = price, y = Albuquerque.Cycles)) + geom_point()
+#We can see that the profit margins are consistent irrespective of the price of the bicycles
+
+#Let us see the margin contributions for each bike type
+ggplot(bikeVendor3, aes(x = RevenueContribution, y = price)) + geom_point(aes(color = VendorName))
+#That is not very interpretable
+
+#Create a subset of the main dataset
+AlbCycles <- subset(bikeVendor3, VendorName == "Albuquerque.Cycles")
+ggplot(AlbCycles, aes(x = RevenueContribution, y = price)) + geom_point(aes(color = frame))
+#It can be observed that Aluminum and Carbon cycles both have same margins.
+
+#Let's observe if specific bike types have any influence over Revenue Contribution 
+ggplot(AlbCycles, aes(x = RevenueContribution, y = price)) + geom_point(aes(color = category1))
+#Seems like the margins are same even for different categories of bikes
+
+#So all analysis based on specific bike vendors breaks down and doesn't yield any results.
+#We can create box plots for price against each category of bike and see the charts if they yield any results.
+ggplot(bikeVendor3, aes(x = VendorName, y = RevenueContribution)) + geom_boxplot() + coord_flip()
+#We see the box plots for the different vendors. The contributions look very similar.
+```

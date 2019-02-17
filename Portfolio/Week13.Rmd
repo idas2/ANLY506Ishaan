@@ -1,0 +1,102 @@
+---
+title: "Week13"
+author: "Ishaan Das"
+date: "January 29, 2019"
+output: html_document
+---
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lattice)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+library(yarrr)
+library(stats)
+library (NbClust)
+library (cluster)
+library (clustertend)
+library (factoextra)
+library(dendextend)
+```
+
+##Heirarchical cluster analysis - We will use the IRIS dataset
+
+```{r}
+data("iris")
+iris2 <- iris[,c(-5)]
+iris2 <- scale(iris2)
+head(iris2)
+
+# Dissimilarity matrix
+d <- dist(iris2, method = "euclidean")
+
+# Hierarchical clustering using Complete Linkage
+hc1 <- hclust(d, method = "complete" )
+
+# Plot the obtained dendrogram
+plot(hc1, cex = 0.6, hang = -1)
+
+#The dendogram might be more clear with the USArrests dataset
+df <- USArrests
+# Dissimilarity matrix
+d <- dist(df, method = "euclidean")
+
+# Hierarchical clustering using Complete Linkage
+hc1 <- hclust(d, method = "complete" )
+
+# Plot the obtained dendrogram
+plot(hc1, cex = 0.6, hang = -1)
+
+#We can also use the agner() function
+# Compute with agnes
+hc2 <- agnes(df, method = "complete")
+
+# Agglomerative coefficient
+hc2$ac
+#Values closer to 1 indicate strong clustering structure
+
+#Visualizing a dendogram
+hc3 <- agnes(df, method = "ward")
+pltree(hc3, cex = 0.6, hang = -1, main = "Dendrogram of agnes")
+
+#Working with dendograms
+# Ward's method
+hc5 <- hclust(d, method = "ward.D2" )
+
+# Cut tree into 4 groups
+sub_grp <- cutree(hc5, k = 4)
+
+# Number of members in each cluster
+table(sub_grp)
+
+#We can outline the 4 clusters
+plot(hc5, cex = 0.6)
+rect.hclust(hc5, k = 4, border = 2:5)
+
+#We can also use fviz() to visualize the cluster
+fviz_cluster(list(data = df, cluster = sub_grp))
+
+#We can use cutree() to cut the clusters into groups
+# Cut agnes() tree into 4 groups
+hc_a <- agnes(df, method = "ward")
+cutree(as.hclust(hc_a), k = 4)
+
+# Cut diana() tree into 4 groups
+hc_d <- diana(df)
+cutree(as.hclust(hc_d), k = 4)
+
+#We can also compare two dendograms
+# Compute distance matrix
+res.dist <- dist(df, method = "euclidean")
+
+# Compute 2 hierarchical clusterings
+hc1 <- hclust(res.dist, method = "complete")
+hc2 <- hclust(res.dist, method = "ward.D2")
+
+# Create two dendrograms
+dend1 <- as.dendrogram (hc1)
+dend2 <- as.dendrogram (hc2)
+
+tanglegram(dend1, dend2)
+```
