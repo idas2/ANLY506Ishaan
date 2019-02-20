@@ -18,12 +18,15 @@ The project is created using R and follows the epicycles of analysis from Roger 
 
 ## Data Description
 
-- The name of the dataset is gapminder.csv
-- You can download the dataset from https://raw.githubusercontent.com/birdsarah/pydata-nc/master/tutorial/assets/gapminder.csv
-- The data set has six columns: Country, Year, Life, Population, Income, and Region
-- There are a total of 41284 observations
-- The data contains demographic information on 197 countries distributed across 6 regions.
+- The name of the dataset is bikeVendors
+- You can download the dataset from the folder data
+- The data set has 5 main columns: bike model, category1, category2, price and frame type
+- The data also contains obervations for different bike vendors. The observations for each bike vendor add up to 1 indicating that they are a ratio of revenue or profit gained from each bike. I will assume they are revenue contributions from each bike.
+- There are a total of 97 observations
 
 ## Analysis
 
--To be published soon
+- The primary question of interest is Which bikes lead to the highest revenue contribution?
+- We will use ggplot2 to create charts and glean our data.
+- We will then use K-means and Heirarchical clustering to cluster our data.
+- Based on the clusters we will try to identify the bikes that provide the highest revenue contribution.

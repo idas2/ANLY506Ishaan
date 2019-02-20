@@ -1,0 +1,383 @@
+---
+title: "FinalExam"
+author: "Ishaan Das"
+date: "February 19, 2019"
+output: html_document
+---
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lattice)
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+library(yarrr)
+library(NbClust)
+library(cluster)
+library(clustertend)
+library(factoextra)
+library(dendextend)
+library(fpc)
+library(clValid)
+```
+
+###Assignment Grading Rubric
+1. Set up your questions - 20pts
+2. Describe your data - 10pts
+3. Explore data - use as many methods as you have learned to gain insights from data. For example, provide descriptive summary and exploratory plots, look for missing data, data variation, look for patterns (clusters). Revise your question if needed, look for additional information as needed. Provide a full explanation/description for each figure. Document your workflow and data wrangling. 40pts
+4. Visualization - make sure you have proper plots, legends, color, symbols.  5pt
+5. Report your findings - make sure to provide answers to your questions. Write a summary of your fundings in your report 10pts
+6. Use of R and RMarkdown - 10pts [proper syntax, documentation, output] Use code chunks and also in-line code, header, fonts, title etc
+7. Upload your code files to your github project and add a direct link in your report. 5 pts
+
+###Let us start by reading in the bikeVendor Dataset
+```{r}
+#Exploratory Data Analysis Checklist
+#Reading in the data
+bikeVendor <- read.csv("C:/Users/sesa434199/Documents/GitHub/ANLY506Ishaan/Data/bikeVendors.csv", header = TRUE)
+
+#Let us check the structure of our dataset before beginning to get a picture of our variables. This will also help us understand if we need to change the variable type of any of the variables.
+str(bikeVendor)
+#Everything looks fine. Factors are factors and intergers are integers.
+```
+
+###Data description
+###1. There are 5 main variables: bike model, category1, category2, frame type and price.
+###2. The data also contains obervations for different bike vendors. The observations for each bike vendor add up to 1 indicating that they are a ratio of revenue or profit gained from each bike. I will assume they are revenue contributions from each bike.
+```{r}
+#We need to reshape the data. This will help us in some of the visualizations.
+colnames(bikeVendor)
+bikeVendor2 <- melt(bikeVendor, id = (1:5))
+
+#Rename the columns
+colnames(bikeVendor2)
+colnames(bikeVendor2)[6] <- "VendorName"
+colnames(bikeVendor2)[7] <- "RevenueContribution"
+#We have to make an assumption here that the values provided for each vendor are the percentage contribution of each bike towards total revenue i.e the revenue from each bike as a percentage of the total revenue.
+
+#Check the packaging
+table(is.na(bikeVendor))
+#Indicates no NA fields
+
+#Check top and bottom
+head(bikeVendor2)
+tail(bikeVendor2)
+#Nothing unusual
+
+#Summary of variables
+summary(bikeVendor$price)
+#Some bikes are really pricey in our dataset
+
+#We can check the deciles of prices
+quantile(bikeVendor$price, seq(0,1,0.1))
+
+#Let us also check summary and decile of contribution margin
+summary(bikeVendor2$RevenueContribution)
+quantile(bikeVendor2$RevenueContribution, seq(0,1,0.1))
+#Only 20% of the observations i.e 20% of the bikes have a revenue contribution greater than 2%
+```
+###We can convert the data into long format to facilitate creation of certain graphs
+
+###Let us start by setting up our questions
+#####1. Which bikes lead to highest revenue contributions?
+#####2. Which category1 lead to high revenue contributions?
+#####3. Which category2 lead to high revenue contributions?
+#####4. Which frame leads to high revenue contributions?
+```{r}
+#The number of bikes in category1
+table(bikeVendor$category1)
+
+#Creating a barplot for category1 and price.
+ggplot(bikeVendor, aes(x = category1, y = price)) + geom_boxplot() + coord_flip()
+#Seems like Mountain bikes have a wider range of prices.
+
+#The number of bikes in category2
+table(bikeVendor$category2)
+
+#Create barplot for category2 and price.
+ggplot(bikeVendor, aes(x = category2, y = price)) + geom_boxplot() + coord_flip()
+#Some observations that can be made are
+#1. Sports bikes are the cheapest.
+#2. Cross country racing bikes have the highest median price followed by over mountain.
+
+#The number of bikes by frame types
+table(bikeVendor$frame)
+
+#Create barplot of frame and price
+ggplot(bikeVendor, aes(x = frame, y = price)) + geom_boxplot() + coord_flip()
+#Carbon cycles in general are much expensive than aluminum cycles.
+
+#We can check the revenue contribution histogram and overlay it with a density curve. We will use bikeVendor2 for this chart.
+ggplot(bikeVendor2, aes(x=RevenueContribution)) + 
+  geom_histogram(aes(y=..density..), color = "black", fill = "white") + 
+  geom_density(alpha=.2, fill="#FF6666")
+#We observe that only some bikes yield a revenue contribution above 0.02 or greater than 2%. We are interested in identifying which bikes provide more revenue.
+
+#We can use overlaid histograms to see if category1, category2 or frame yield higher contributions.
+ggplot(bikeVendor2, aes(x=RevenueContribution, color=category1)) +
+  geom_histogram(fill="white", alpha=0.5, position="identity")
+#Even though the number of mountain and road bikes are same, it seems like mountain bikes have a lower contribution margin.
+
+ggplot(bikeVendor2, aes(x=RevenueContribution, color=category2)) +
+  geom_histogram(fill="white", alpha=0.5, position="identity")
+#This histograms don't yeild much insight.
+ggplot(bikeVendor2, aes(x=RevenueContribution, color=frame)) +
+  geom_histogram(fill="white", alpha=0.5, position="identity")
+#It seems carbon bikes have a higher revenue contribution than aluminum bikes.
+
+#A table should help us identify the different means by frame.
+tapply(bikeVendor2$RevenueContribution, bikeVendor2$frame, mean)
+#But mean for aluminum bikes is higher. This maybe due to a lot of bikes contributing to 0% revenue which can skew the mean.
+
+#A table should help us identify the different means by category1 and category2
+tapply(bikeVendor2$RevenueContribution, bikeVendor2$category1, mean) #Road bikes have a higher revenue contribution 
+tapply(bikeVendor2$RevenueContribution, bikeVendor2$category2, mean) #Triathalon bikes have the highest revenue contribution, followed by Elite Road and Endurance Road
+
+#We can also check price histograms and density plots
+ggplot(bikeVendor2, aes(x=price)) + 
+  geom_histogram(aes(y=..density..), color = "black", fill = "white") +
+  geom_density(alpha=.2, fill="#FF6666")
+#We can observe that a lot of bikes are in the $0-5000 price range
+
+#Check box plots for different vendors to identify any patterns
+ggplot(bikeVendor2, aes(x = VendorName, y = RevenueContribution)) + geom_boxplot() + coord_flip()
+#Can't deduce much from this chart except that it all looks same
+```
+###From the plots and tables we can conclude the following:
+#####1. Aluminum bikes have a higher revenue contribution than carbon
+#####2. Road bikes have a higher revenue contribution than Mountain bikes
+#####3. Triathalon bikes have the highest revenue contribution followed closely by Elite road and Endurance road.
+
+###Let us now use K-means cluster analysis to identify some patterns
+```{r}
+#Let us use the visual technique to assess if there is clustering tendency
+fviz_dist(dist(bikeVendor), show_labels = FALSE)+
+  labs(title = "BikeVendor")
+#We can see soem clusters so let us analyze further
+
+#We will use k-means to cluster the data. But first we need to know how many clusters are there in the dataset
+#First let us scale the data
+bvscale <- na.omit(bikeVendor)
+rownames(bvscale) <- bikeVendor$model #Renaming rows to show model names
+str(bvscale)
+colnames(bvscale)
+bvscale <- bvscale[, c(-1, -2, -3, -4, -5, -36)] #Removing all non numeric variables
+
+#Scale the dataset
+bvscale <- scale(bvscale)
+
+#Use Kendall correlation distance
+distance <- get_dist(bvscale)
+fviz_dist(distance, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07"))
+
+#Kmeans clustering
+k2 <- kmeans(bvscale, centers = 2, nstart = 25)
+fviz_cluster(k2, data = bvscale)
+#We see that there are two very distinct clusters in the dataset.
+
+#Let us try creating some more clusters
+k3 <- kmeans(bvscale, centers = 3, nstart = 25)
+k4 <- kmeans(bvscale, centers = 4, nstart = 25)
+k5 <- kmeans(bvscale, centers = 5, nstart = 25)
+
+# plots to compare
+p1 <- fviz_cluster(k2, geom = "point", data = bvscale) + ggtitle("k = 2")
+p2 <- fviz_cluster(k3, geom = "point",  data = bvscale) + ggtitle("k = 3")
+p3 <- fviz_cluster(k4, geom = "point",  data = bvscale) + ggtitle("k = 4")
+p4 <- fviz_cluster(k5, geom = "point",  data = bvscale) + ggtitle("k = 5")
+
+library(gridExtra)
+grid.arrange(p1, p2, p3, p4, nrow = 2)
+#There are distinct clusters in the dataset
+
+#Next we can find the optimum number of clusters.
+#1. Elbow method
+set.seed(123)
+fviz_nbclust(bvscale, kmeans, method = "wss")
+#This method suggests 4 clusters
+
+#2. Average silhouette method
+fviz_nbclust(bvscale, kmeans, method = "silhouette")
+#This method suggest 4 clusters
+
+#3. Gap statistic method
+set.seed(123)
+gap_stat <- clusGap(bvscale, FUN = kmeans, nstart = 25,
+                    K.max = 10, B = 50)
+fviz_gap_stat(gap_stat)
+#This method suggests 4 clusters
+
+#4 seems to be the optimum number of clusters
+set.seed(123)
+finalClust <- kmeans(bvscale, 4, nstart = 25)
+#Visualizing using the final results
+fviz_cluster(finalClust, data = bvscale)
+
+#Now we can extract the clusters into our initial data and do some descriptive statistics
+bikeVendor$cluster <- finalClust$cluster
+  
+#Now that we have our clusters we can plot which models/category/price fall under a particular cluster
+#Creating a box plot of price by cluster
+
+#Define cluster as a factor first
+bikeVendor$cluster <- factor(bikeVendor$cluster)
+
+#Let us check the distribution of different category for each cluster
+table(bikeVendor$cluster)
+table(bikeVendor$cluster, bikeVendor$category1) # This seems as the most useful table since we can see that Mountain Bikes are falling into two clusters and road bikes are falling into two clusters
+table(bikeVendor$cluster, bikeVendor$category2)
+table(bikeVendor$cluster, bikeVendor$frame)
+
+#We need to add the cluster column to our melted data
+bikeVendor3 <- select(bikeVendor, "cluster", everything())
+bikeVendor3 <- melt(bikeVendor3, id = (1:6))
+
+#Rename the columns to match what we 
+colnames(bikeVendor3)[7] <- "VendorName"
+colnames(bikeVendor3)[8] <- "RevenueContribution"
+colnames(bikeVendor3)
+
+#Let us create a scatterplot of all bike models
+ggplot(bikeVendor3, aes(x = RevenueContribution, y = price)) + geom_point(aes(color = cluster))
+#It seems like bikes above $3000 fall under cluster 2 and 3
+
+#boxplot prices of each cluster
+ggplot(bikeVendor3, aes(x = cluster, y = RevenueContribution)) + geom_boxplot() + coord_flip()
+ggplot(bikeVendor3, aes(x = cluster, y = price)) + geom_boxplot() + coord_flip()
+#We can observe that cluster 2 and 3 have significantly lower price ranges than cluster 3 and 4
+
+#Same can be observed by a histogram
+ggplot(bikeVendor3, aes(x=price, color=cluster)) +
+  geom_histogram(fill="white", alpha=0.5, position="identity")
+```
+
+###Let's do some summary statistics based on the clusters
+```{r}
+with(bikeVendor3, tapply(price, list(cluster), summary)) #We observe that cluster 1 and 4 have a high mean and median prices as observed from our previous charts
+
+with(bikeVendor3, tapply(price, list(cluster, category1), mean)) #Mean prices seem to be distinct within the clusters
+with(bikeVendor3, tapply(RevenueContribution, list(cluster, category1), mean)) #Revenue contribution is also distinct within the clusters
+
+subset(bikeVendor$model, bikeVendor$cluster == 1)
+subset(bikeVendor$model, bikeVendor$cluster == 2)
+subset(bikeVendor$model, bikeVendor$cluster == 3)
+subset(bikeVendor$model, bikeVendor$cluster == 4)
+```
+
+###We can make the following conclusions from the K-means clustering 
+#####1. Cluster 2 bikes have the highest revenue contribution in both Mountain and Road bikes 
+#####2. Mountain bikes in cluster 3 and road bikes in cluster 4 have the second highest contribution
+#####3. Mountain bikes in cluster 1 have the lowest contribution.
+
+##Let us also use Hierarchical Clustering and check if we get different results.
+```{r}
+#We will work with the bvscale dataset that we created
+colnames(bvscale)
+
+#1. Agglomerative Hierarchical Clustering
+#Dissimilarity matrix
+d <- dist(bvscale, method = "euclidean")
+
+#Hierarchical clustering using Complete Linkage
+hc1 <- hclust(d, method = "complete" )
+
+#Plot the obtained dendrogram
+plot(hc1, cex = 0.6, hang = -1, main = "Dendrogram of Hclust")
+
+#2. Divisive Hierarchical Clustering
+# compute divisive hierarchical clustering
+hc4 <- diana(bvscale)
+
+# Divise coefficient; amount of clustering structure found
+hc4$dc  #Values closer to 1 suggest strong clustering structure
+
+# plot dendrogram
+pltree(hc4, cex = 0.6, hang = -1, main = "Dendrogram of diana")
+
+#We can cut the clusters into sub groups
+#Ward's method
+hc5 <- hclust(d, method = "ward.D2" )
+
+#Cut tree into 4 groups
+sub_grp <- cutree(hc5, k = 4)
+
+#Number of members in each cluster
+table(sub_grp)
+
+#We can add our clusters to the main dataframe
+bikeVendor$cluster2 <- sub_grp
+
+#We can draw borders around the different clusters
+plot(hc5, cex = 0.6)
+rect.hclust(hc5, k = 4, border = 2:5)
+
+#And we can also use fviz_cluster to visualize our clusters
+fviz_cluster(list(data = bvscale, cluster = sub_grp))
+
+#Now we can compare the two dendrograms
+#Compute distance matrix
+res.dist <- dist(bvscale, method = "euclidean")
+
+#Compute 2 hierarchical clusterings
+hc2 <- hclust(res.dist, method = "complete")
+hc3 <- hclust(res.dist, method = "ward.D2")
+
+#Create two dendrograms
+dend1 <- as.dendrogram (hc2)
+dend2 <- as.dendrogram (hc3)
+
+#Create the tanglegram
+tanglegram(dend1, dend2)
+
+#We need to add the cluster2 column to our melted data
+bikeVendor4 <- select(bikeVendor, "cluster2", everything())
+bikeVendor4 <- select(bikeVendor4, "cluster", everything())
+colnames(bikeVendor4)
+bikeVendor4 <- melt(bikeVendor4, id = (1:7))
+
+#Rename the columns to match what we 
+colnames(bikeVendor4)[8] <- "VendorName"
+colnames(bikeVendor4)[9] <- "RevenueContribution"
+colnames(bikeVendor4)
+```
+
+
+###Let us do calculate some summary statistics
+```{r}
+#Let us check if these clusters reveal different insights from what we already saw
+with(bikeVendor4, tapply(price, list(cluster2), summary)) #We observe that cluster 1 and 4 have a high mean and median prices as observed from our previous charts
+
+with(bikeVendor4, tapply(price, list(cluster2, category1), mean)) #Mean prices seem to be distinct within the clusters
+with(bikeVendor4, tapply(RevenueContribution, list(cluster2, category1), mean)) #Mean revenue contribution seems to be distinct within the clusters
+
+with(bikeVendor4, tapply(RevenueContribution, list(cluster, cluster2), mean))
+#The clusters from kmeans and heirarchical have similar properties.
+
+#Let us look at the bikes in each cluster
+subset(bikeVendor$model, bikeVendor$cluster2 == 1)
+subset(bikeVendor$model, bikeVendor$cluster2 == 2)
+subset(bikeVendor$model, bikeVendor$cluster2 == 3)
+subset(bikeVendor$model, bikeVendor$cluster2 == 4)
+
+boxplot(RevenueContribution ~ interaction(cluster, category1), data = bikeVendor4) #Some more boxplots to visualize the interactions between category1, cluster and revenuecontribution
+boxplot(RevenueContribution ~ interaction(cluster2, category1), data = bikeVendor4) #Some more boxplots to visualize the interactions between category1, cluster2 and revenuecontribution
+```
+
+###To sumumarize we can make the following conclusions:
+
+####We can make the following conclusions from the heirarchical clustering,
+#####1. Cluster 2 bikes have the highest revenue contribution in both Mountain and Road bikes 
+#####2. Road bikes in cluster 3 and mountain bikes in cluster 1 and 4 have the second highest contribution
+#####3. Mountain bikes in cluster 4 have the lowest contribution.
+
+####We can make the following conclusions from the K-means clustering,
+#####1. Cluster 2 bikes have the highest revenue contribution in both Mountain and Road bikes 
+#####2. Mountain bikes in cluster 3 and road bikes in cluster 4 have the second highest contribution
+#####3. Mountain bikes in cluster 1 have the lowest contribution.
+
+####We can make the following conclusions from our plots,
+#####1. Aluminum bikes have a higher revenue contribution than carbon
+#####2. Road bikes have a higher revenue contribution than Mountain bikes
+#####3. Triathalon bikes have the highest revenue contribution followed closely by Elite road and Endurance road.
+
+#####This analysis can be found on Github in the Code folder https://github.com/idas2/ANLY506Ishaan
